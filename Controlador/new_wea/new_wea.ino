@@ -17,15 +17,18 @@ bool aux = true;
 char inByte;
 
 
+
 void setup()
 {
-  pinMode(encoder0PinA, INPUT);
-  pinMode(encoder0PinB, INPUT);
-  attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoder0A, CHANGE);  
-  attachInterrupt(digitalPinToInterrupt(encoder0PinB), doEncoder0B, CHANGE);  
+//  pinMode(encoder0PinA, INPUT);
+//  pinMode(encoder0PinB, INPUT);
+//  attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoder0A, CHANGE);  
+//  attachInterrupt(digitalPinToInterrupt(encoder0PinB), doEncoder0B, CHANGE);  
   
-  Serial.begin(9600);
-  Serial.println("Starting...");
+  Serial.begin(115200);
+  Serial2.begin(9600);
+  Serial2.println("M1: 0");
+  
   encoder0Pos = 0;
 }
 
@@ -52,7 +55,9 @@ void doEncoder0B()
 void loop() {
   while (Serial.available()>0) {
     inByte = Serial.read();
-    Serial.println(++inByte);
+    Serial.print(inByte);
+    Serial2.print("M1: ");
+    Serial2.println(int(inByte*2));
     }
   }
 //    if(encoder0Pos>176128 and aux){

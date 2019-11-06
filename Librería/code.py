@@ -1,54 +1,55 @@
-import threading
-import Queue
+# import threading
+# import Queue
+from serial import Serial, EIGHTBITS
 import random
 import time
 
-
-""" def run():
-    input_data = listen()  # asumo len(input_data) == 8 (1 byte)
-    
-    to_Arduino = threading.Thread(target=speak)
-    listen_Arduino = threading.Thread(target=listen)
-
-    to_Arduino.start()
-    listen_Arduino.start()
-
-
-def listen():
-    while True:
-        input_data = # input
-
-        if  len([i for i in input_data if i == "1"]) == 8: # header 1111 1111
-            start_cycle()
-
-
-def speak():
-    while True:
- """
-
-
 def run():
-    port = '/dev/ttyUSB0'
-    while True:
+    port = '/dev/ttyUSB1'
+    start = time.time()
+    serial = Serial(port, 115200, timeout=0.1, bytesize=EIGHTBITS)
+    serial.close()
+    serial.open()
+    speak(0, serial)
+    for i in range(10,255):
         time_start = time.time()
-        input_data = listen(port)  
-        speak(input_data)
+        speak(i, serial)
+        input_data = listen(serial)  
         time_end = time.time()
         print("Tiempo recibido-enviado: {}".format(time_end-time_start))
+        time.sleep(.05)
+
+    for i in range(255,-1, -1):
+        time_start = time.time()
+        speak(i, serial)
+        input_data = listen(serial)  
+        time_end = time.time()
+        print("Tiempo recibido-enviado: {}".format(time_end-time_start))
+        time.sleep(.1)
+    serial.close()
 
 
 
 def listen(port):
-    while True:
-        with serial.Serial(port, 19200, timeout=1) as ser:
-            x = ser.read()          # read one byte
-        if x:
+    for i in range(10):
+        x = port.read()         # read one byte
+        if x != b"":
+            print(f"Listen = {x}:")
+            for i in range(len(x)):
+                print(f"<=>{x[i]}")
             return x
 
 
 
-def speak(input_data):
-    ser = serial.Serial(port)
-    number = str(random.randint(0, 255))
-    ser.write(bytes(number))
+def speak(num, port):
+    rand_num = num
+    msg=bytearray()
+    print(f"SpeakNum = {rand_num}, {chr(rand_num)}")
+    msg.append(rand_num)
+    print(f"Speak = {msg}")
+    port.write(msg)
 
+
+print("partiending")
+run()
+print("termina3")
