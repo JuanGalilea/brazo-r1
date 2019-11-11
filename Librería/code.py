@@ -5,11 +5,9 @@ import random
 import time
 
 def run():
-    port = '/dev/ttyUSB1'
+    port = '/dev/ttyUSB0'
     start = time.time()
     serial = Serial(port, 115200, timeout=0.1, bytesize=EIGHTBITS)
-    serial.close()
-    serial.open()
     speak(0, serial)
     for i in range(10,255):
         time_start = time.time()
