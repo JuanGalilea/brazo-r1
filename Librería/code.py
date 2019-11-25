@@ -9,21 +9,26 @@ def run():
     start = time.time()
     serial = Serial(port, 115200, timeout=0.1, bytesize=EIGHTBITS)
     speak(0, serial)
-    for i in range(10,255):
-        time_start = time.time()
-        speak(i, serial)
-        input_data = listen(serial)  
-        time_end = time.time()
-        print("Tiempo recibido-enviado: {}".format(time_end-time_start))
-        time.sleep(.05)
+    # for i in range(10,255):
+    #     time_start = time.time()
+    #     speak(i, serial)
+    #     input_data = listen(serial)  
+    #     time_end = time.time()
+    #     print("Tiempo recibido-enviado: {}".format(time_end-time_start))
+    #     time.sleep(.05)
 
-    for i in range(255,-1, -1):
-        time_start = time.time()
-        speak(i, serial)
+    # for i in range(255,-1, -1):
+    #     time_start = time.time()
+    #     speak(i, serial)
+    #     input_data = listen(serial)  
+    #     time_end = time.time()
+    #     print("Tiempo recibido-enviado: {}".format(time_end-time_start))
+    #     time.sleep(.1)
+    for i in range(10):
+        tgt = random.randint(0,255)
+        speak(tgt,serial)
         input_data = listen(serial)  
-        time_end = time.time()
-        print("Tiempo recibido-enviado: {}".format(time_end-time_start))
-        time.sleep(.1)
+        time.sleep(10)
     serial.close()
 
 
