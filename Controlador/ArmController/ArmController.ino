@@ -1,20 +1,33 @@
 // HBridge1 S1 goes in TX2 (pin 16) ¡connect to hip and elbow!
 // HBridge1 S2 goes in RX2 (pin 17)
 // 0 = H = Hip, 1 = S = Shoulder, 2 = E = Elbow
-#define hipEncA  30
-#define hipEncB  31
+#define inputREG PIOC
+#define lastPinMask 0b00000000000000000000000000000001
 
-#define shoulderEncA  32
-#define shoulderEncB  33
+#define hipEncA  33
+#define hipEncAShift 1
+#define hipEncB  34
+#define hipEncBShift 2
 
-#define elbowEncA  34
-#define elbowEncB  35
+#define shoulderEncA  35
+#define shoulderEncAShift 3
+#define shoulderEncB  36
+#define shoulderEncBShift 4
 
-#define hipEOT      40
-#define shoulderEOT 41
-#define elbowEOT    42
+#define elbowEncA  37
+#define elbowEncAShift 5
+#define elbowEncB  38
+#define elbowEncBShift 6
+
+#define hipEOT      39
+#define hipEOTShift 7
+#define shoulderEOT 40
+#define shoulderEOTShift 8
+#define elbowEOT    41
+#define elbowEOTShift 9
 
 long fullRotation = 175784;
+float integrativeLoss = 0.8;
 bool isZeroed     = false;
 char histPointer  = 0;
 long startTime    = 0;
@@ -34,6 +47,8 @@ long  hipRef            = 0;
 float hipP              = 0;
 float hipI              = 0;
 float hipD              = 0;
+long  hipAccError       = 0;
+int   hipIConstrain     = 5000;
 
 volatile bool shoulderZeroed  = false;
 volatile long shoulderPos     = 0;
@@ -41,10 +56,15 @@ long  shoulderPosHist[5]         ;
 long  shoulderTarget          = 0;
 long  shoulderNextTarget      = 0;
 long  shoulderRef             = 0;
-float shoulderP               = 6;
-float shoulderI               = 0;
-float shoulderD               = 15;
-long  shoulderKg              = 40;
+//float shoulderP               = 6;
+//float shoulderI               = 1.4;
+//float shoulderD               = 60;
+float shoulderP               = 4;
+float shoulderI               = 1.5;
+float shoulderD               = 20;
+long  shoulderKg              = 16; // MAS ALTO = MAS DÉBIL
+long  shoulderAccError        = 0;
+int   shoulderIConstrain      = 5000;
 
 volatile bool elbowZeroed = false;
 volatile long elbowPos    = 0;
@@ -53,8 +73,10 @@ long  elbowTarget         = 0;
 long  elbowNextTarget     = 0;
 long  elbowRef            = 0;
 float elbowP              = 3;
-float elbowI              = 0;
+float elbowI              = 0.9;
 float elbowD              = 10;
+long  elbowAccError       = 0;
+int   elbowIConstrain     = 5000;
 
 //void letsZero() {
 //  if (not hipZeroed) {sendRefToMotor(0,40);}
@@ -102,50 +124,28 @@ void setup()
 
 
 void loop() {
-//  setElbowReference(0);
-//  setShoulderReference(50000);
+  //  setElbowReference(0);
+  //  setShoulderReference(50000);
   // Check zeroing de las articulaciones
-  if (millis()- startTime < 15000){
+  if (millis()- startTime < 5000){
     setElbowReference(0);
     setShoulderReference(0);
     }
-  else if (millis() - startTime < 20000){
-    setElbowReference(30000);
-    setShoulderReference(0);    
+  else if (millis() - startTime < 10000){
+    setElbowReference(1000);
+    setShoulderReference(40000);    
     }
-  else if (millis() - startTime < 25000){
-    setElbowReference(5000);
-    setShoulderReference(0);    
-  }
-  else if (millis() - startTime < 30000){
-    setElbowReference(5000);
-    setShoulderReference(60000);    
-  }
-  else if (millis() - startTime < 35000){
-    setElbowReference(30000);
-    setShoulderReference(60000);    
-  }
-  else if (millis() - startTime < 40000){
-    setElbowReference(5000);
-    setShoulderReference(60000);    
-  }
-  else if (millis() - startTime < 45000){
-    setElbowReference(5000);
-    setShoulderReference(60000);    
-  }
-  else if (millis() - startTime < 50000){
-    setElbowReference(5000);
-    setShoulderReference(60000);    
-  }
   else {
     setElbowReference(5000);
-    setShoulderReference(60000);
-  }
+    setShoulderReference(40000);
+    }
 
   updatePosHist();
   if (exec) {
     sendRefToMotor(2,controlElbow());
     sendRefToMotor(1,controlShoulder());
+    Serial.print(shoulderRef, DEC);
+    Serial.print(" : ");
     Serial.print(shoulderPos, DEC);
     Serial.print(" : ");
     Serial.println(controlShoulder(), DEC);
@@ -172,18 +172,18 @@ void loop() {
 
 
 void doHipEncA() {
-  if (digitalRead(hipEncA) == digitalRead(hipEncB)) {
+  if (readFromReg(hipEncAShift) == readFromReg(hipEncBShift)) {
     hipPos++;
   } 
   else {
-    if (digitalRead(hipEOT)) {hipPos = 0;}
+    if (readFromReg(hipEOTShift)) {hipPos = 0;}
     else {hipPos--;}
   }
 }
 
 void doHipEncB() {
-  if (digitalRead(hipEncA) == digitalRead(hipEncB)) {
-    if (digitalRead(hipEOT)) {hipPos = 0;}
+  if (readFromReg(hipEncAShift) == readFromReg(hipEncBShift)) {
+    if (readFromReg(hipEOTShift)) {hipPos = 0;}
     else {hipPos--;}
   } 
   else {
@@ -192,8 +192,8 @@ void doHipEncB() {
 }
 
 void doShoulderEncA() {
-  if (digitalRead(shoulderEncA) == digitalRead(shoulderEncB)) {
-    if (digitalRead(shoulderEOT)) {shoulderPos = 0;}
+  if (readFromReg(shoulderEncAShift) == readFromReg(shoulderEncBShift)) {
+    if (readFromReg(shoulderEOTShift)) {shoulderPos = 0;}
     else {shoulderPos--;}
   } 
   else {
@@ -202,19 +202,19 @@ void doShoulderEncA() {
 }
 
 void doShoulderEncB() {
-  if (digitalRead(shoulderEncA) == digitalRead(shoulderEncB)) {
+  if (readFromReg(shoulderEncAShift) == readFromReg(shoulderEncBShift)) {
     shoulderPos++;
   } 
   else {
-    if (digitalRead(shoulderEOT)) {shoulderPos = 0;}
+    if (readFromReg(shoulderEOTShift)) {shoulderPos = 0;}
     else {shoulderPos--;}
   }
 }
 
 void doElbowEncA() {
-  if (digitalRead(elbowEncA) == digitalRead(elbowEncB)) {
-    if (digitalRead(elbowEOT)) {elbowPos--;}
-    // if (digitalRead(elbowEOT)) {elbowPos = 0;}
+  if (readFromReg(elbowEncAShift) == readFromReg(elbowEncBShift)) {
+    if (readFromReg(elbowEOTShift)) {elbowPos--;}
+    // if (readFromReg(elbowEOTShift)) {elbowPos = 0;}
     else {elbowPos--;}
   } 
   else {
@@ -223,12 +223,12 @@ void doElbowEncA() {
 }
 
 void doElbowEncB() {
-  if (digitalRead(elbowEncA) == digitalRead(elbowEncB)) {
+  if (readFromReg(elbowEncAShift) == readFromReg(elbowEncBShift)) {
     elbowPos++;
   } 
   else {
-    // if (digitalRead(elbowEOT)) {elbowPos = 0;}
-    if (digitalRead(elbowEOT)) {elbowPos--;}
+    // if (readFromReg(elbowEOTShift)) {elbowPos = 0;}
+    if (readFromReg(elbowEOTShift)) {elbowPos--;}
     else {elbowPos--;}
   }
 }
@@ -254,6 +254,10 @@ void updatePosHist () {
   elbowPosHist[histPointer] = elbowPos;
   timeHist[histPointer] = millis();
   if (++histPointer >= 5) {histPointer = 0;}
+}
+
+bool readFromReg(int shift) {
+  return (inputREG -> PIO_PDSR >> shift) & lastPinMask;
 }
 
 char to05 (char entrada) {
@@ -317,23 +321,29 @@ void setElbowReference (double ref) {
 }
 
 int controlHip () {
+  hipAccError = constrain(integrativeLoss * hipAccError + hipRef - hipPos, -hipIConstrain, hipIConstrain);
   double p = (hipRef - hipPos) * hipP;
   double d = hipVel() * (-hipD);
-  return map(constrain(p + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  long   i = hipAccError * hipI;
+  return map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
 int controlShoulder () {
+  shoulderAccError = constrain(integrativeLoss * shoulderAccError + shoulderRef - shoulderPos, -shoulderIConstrain, shoulderIConstrain);
   double p = (shoulderRef - shoulderPos) * shoulderP;
   double d = shoulderVel() * (-shoulderD);
   double aux = map(shoulderPos, 0, 110000,0,180);
   double g = ((aux - 90)*abs(aux - 90)) / -shoulderKg;
-  return g + map(constrain(p + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  long   i = shoulderAccError * shoulderI;
+  return g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
 int controlElbow () {
+  elbowAccError = constrain(integrativeLoss * elbowAccError + elbowRef - elbowPos, -elbowIConstrain, elbowIConstrain);
   double p = (elbowRef - elbowPos) * elbowP;
   double d = elbowVel() * (-elbowD);
-  return map(constrain(p + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  long   i = elbowAccError * elbowI;
+  return map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
 void sendRefToMotor(int motor, int ref) {
