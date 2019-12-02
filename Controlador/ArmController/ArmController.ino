@@ -111,14 +111,12 @@ void setup()
   Serial.begin(115200);
   Serial2.begin(9600);
   Serial3.begin(9600);
-  Serial.println("huasisi");
+  Serial.println("Starting ...");
   sendRefToMotor(0,0);  // turn off hip
   sendRefToMotor(1,0);  // turn off shoulder
   sendRefToMotor(2,0);  // turn off elbow
 
   startTime = millis();
-
-  // setear aca valores de "inicio" de los distintos wnes, pa pillar los 0 con los final de carrera
 }
 
 
