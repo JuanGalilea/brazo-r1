@@ -164,6 +164,7 @@ void loop() {
     updatePosHist();
     controlElbow();
     controlShoulder();
+    controlHip();
     if (exec) {
       sendRefToMotor(2,elbowMotorT);
       sendRefToMotor(1,shoulderMotorT);
