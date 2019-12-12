@@ -147,6 +147,7 @@ void setup()
   Serial.begin(115200);
   Serial2.begin(9600);
   Serial3.begin(9600);
+
   sendRefToMotor(0,0);  // turn off hip
   sendRefToMotor(1,0);  // turn off shoulder
   sendRefToMotor(2,0);  // turn off elbow
@@ -165,13 +166,9 @@ void loop() {
     controlElbow();
     controlShoulder();
     controlHip();
-    if (exec) {
-      sendRefToMotor(2,elbowMotorT);
-      sendRefToMotor(1,shoulderMotorT);
-      sendRefToMotor(0,hipMotorT);
-    }
-    else {
-    }
+    sendRefToMotor(2,elbowMotorT);
+    sendRefToMotor(1,shoulderMotorT);
+    sendRefToMotor(0,hipMotorT);
     if (inByte != NoData) {
       LastInByte = inByte;
     }
@@ -190,12 +187,20 @@ void handleComms () {
           setHipReference (hipHome);
           setShoulderReference (shoulderHome);
           setElbowReference (elbowHome);
+          Serial.write('B');
           Serial.end();
           break;
         case GoHome:
           setHipReference (hipHome);
           setShoulderReference (shoulderHome);
           setElbowReference (elbowHome);
+          Serial.write('A');
+          break;
+        case UpdateAll:
+          setHipReference (hipNextTarget);
+          setShoulderReference (shoulderNextTarget);
+          setElbowReference (elbowNextTarget);
+          Serial.write('A');
           break;
                   // Ordenes de la Cadera
         case HipGivePos:
@@ -233,39 +238,39 @@ void handleComms () {
         default:
           Serial.write('E');
           break;
-        LastCommand = inByte;
       }
+      LastCommand = inByte;
     }
     else {                                    // Lectura de Literales
       switch (LastCommand) {
       case HipTakeRef:
         Serial.write('5');
-        hipNextTarget = emptyLong ^ ((inByte & payloadMask) << 7);
+        hipNextTarget = emptyLong ^ ((inByte & payloadMask) << 10);
         LastCommand = HipTakeRef50;
         break;
       case HipTakeRef50:
         Serial.write('A');
-        hipNextTarget = hipNextTarget ^ (inByte & payloadMask);
+        hipNextTarget = hipNextTarget ^ ((inByte & payloadMask) << 3);
         LastCommand = Nothing;
         break;
       case ShoulderTakeRef:
         Serial.write('5');
-        shoulderNextTarget = emptyLong ^ ((inByte & payloadMask) << 7);
+        shoulderNextTarget = emptyLong ^ ((inByte & payloadMask) << 10);
         LastCommand = ShoulderTakeRef50;
         break;
       case ShoulderTakeRef50:
         Serial.write('A');
-        shoulderNextTarget = shoulderNextTarget ^ (inByte & payloadMask);
+        shoulderNextTarget = shoulderNextTarget ^ ((inByte & payloadMask) << 3);
         LastCommand = Nothing;
         break;
       case ElbowTakeRef:
         Serial.write('5');
-        elbowNextTarget = emptyLong ^ ((inByte & payloadMask) << 7);
+        elbowNextTarget = emptyLong ^ ((inByte & payloadMask) << 10);
         LastCommand = ElbowTakeRef50;
         break;
       case ElbowTakeRef50:
         Serial.write('A');
-        elbowNextTarget = elbowNextTarget ^ (inByte & payloadMask);
+        elbowNextTarget = elbowNextTarget ^ ((inByte & payloadMask) << 3);
         LastCommand = Nothing;
         break;
       default:
@@ -445,8 +450,7 @@ void controlShoulder () {
   double aux = map(shoulderPos, 0, 110000,0,180);
   double g = ((aux - 90)*abs(aux - 90)) / -shoulderKg;
   long   i = shoulderAccError * shoulderI;
-  shoulderMotorT = g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
-//   return g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  shoulderMotorT = constrain(g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000),-1000,1000);
 }
 
 void controlElbow () {
