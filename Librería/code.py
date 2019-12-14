@@ -93,14 +93,13 @@ def serialCharReader(port):
         yield port.read()
 
 def speak(num, port):
-    rand_num = num
     msg=bytearray()
     # print(f"SpeakNum = {rand_num}, {chr(rand_num)}")
-    msg.append(rand_num)
+    msg.append(num)
     # print(f"Speak = {msg}")
     port.write(msg)
 
-
-print("partiending")
-run()
-print("termina3")
+if __name__ == "__main__":
+    print("partiending")
+    run()
+    print("termina3")
