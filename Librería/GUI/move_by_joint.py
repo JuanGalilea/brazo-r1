@@ -12,11 +12,11 @@ class MoveByJoint(QWidget):
         self.shoulder_range_value       = (-654654, 3213213)
         self.hip_range_value            = (-654654, 3213213)
 
-        self.elbow_pos_value    = 0             # Setear con valor actual
+        self.elbow_pos_value    = 0                             # Setear con valor actual
         self.shoulder_pos_value = 0
         self.hip_pos_value      = 0
 
-        self.increment = 5                      # Fijar valor real
+        self.increment = 5                                      # Fijar valor real
 
         self.setupUi(self)
         

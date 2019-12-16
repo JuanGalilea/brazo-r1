@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QDialog, QWidget, QApplication, QGridLayout, QLabel, QMainWindow
+from PyQt5.QtWidgets import QDialog, QWidget, QApplication, QLabel, QMainWindow
 from PyQt5.QtCore import pyqtSignal, QObject
 
 from move_by_joint import *

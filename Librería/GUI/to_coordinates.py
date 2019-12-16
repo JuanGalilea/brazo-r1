@@ -90,6 +90,7 @@ class ToCoordinates(QWidget):
     def mousePressEvent(self, event):
         super(ToCoordinates, self).mousePressEvent(event)
         x, y = event.x(), event.y()
+        
         y_move      = 756 < y and y < 779
         x_move_cart = 205 < x and x < 323
         x_move_cil  = 729 < x and x < 846
