@@ -611,7 +611,6 @@ void controlHip () {
   double d = hipVel() * (-hipD);
   long   i = hipAccError * hipI;
   hipMotorT = map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
-//   return map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
 void controlHipV () {

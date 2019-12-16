@@ -1,5 +1,6 @@
 from serial import Serial, EIGHTBITS
 from time import sleep
+import math as m
 
 class InvalidOrderException (Exception):pass
 
@@ -100,6 +101,35 @@ class ARMR1:
         a = b"a"
         while a != b"":
             a = next(self.reader)
+
+    def cartesian2angles(self, xs):  # esta funcion toma un punto en el espacio de tarea y lo s tranforma al espacio de estados
+
+        d1 = 84 / 1000  # sp.var('d_1')
+        d2 = 225 / 1000  ##sp.var('d_2')
+        d3 = 225 / 1000  # sp.var('d_3')
+
+        q1 = m.atan2(xs[1], xs[0])
+
+        Dy = xs[2] - d1
+        Dx = m.sqrt(xs[0] ** 2 + xs[1] ** 2)
+
+        R1, R2 = d2, d3
+
+        D = m.sqrt(Dx ** 2 + Dy ** 2)
+
+        chorddistance = (R1 ** 2 - R2 ** 2 + D ** 2) / (2 * D)
+        # distance from 1st circle's centre to the chord between intersects
+        halfchordlength = m.sqrt(R1 ** 2 - chorddistance ** 2)
+        chordmidpointx = (chorddistance * Dx) / D
+        chordmidpointy = (chorddistance * Dy) / D
+
+        interseccion = (chordmidpointx - (halfchordlength * Dy) / D, chordmidpointy + (halfchordlength * Dx) / D)
+        theta2 = m.atan2(interseccion[1], interseccion[0])
+
+        q2 = - theta2 + m.pi / 2
+        q3 = m.pi / 2 - m.atan2(Dy - interseccion[1], Dx - interseccion[0]) - q2
+
+        return [q1, q2 + 90, q3]
 
 if __name__ == "__main__":
     a = ARMR1()
