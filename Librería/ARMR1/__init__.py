@@ -3,6 +3,7 @@ from time import sleep
 import math as m
 
 class InvalidOrderException (Exception):pass
+class OutOfRangeReference   (Exception):pass
 
 fullRotation = 175784
 
@@ -97,6 +98,8 @@ class ARMR1:
                                                                 #     print(next(portReader))
                                                                 #     speak((value % 1024) // 8, serial)
                                                                 #     print(next(portReader))
+        if max([hipAngle // 1024, shoulderAngle // 1024, elbowAngle // 1024]) > 127:
+            raise OutOfRangeReference("Angle given exceeds range possible to be sent")
         try:
             self.talk(CHANGE_ELBOW_REFERENCE)
             self.talk(hipAngle // 1024)
