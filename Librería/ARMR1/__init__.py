@@ -58,7 +58,9 @@ class ARMR1:
         while input_data != b'S':
             self._speak(NO_COMMAND)
             input_data = next(self.reader)
-        self.clearSerial()
+
+        self.clearSerial() 
+    
 
     def getPositions(self):
         hip = self.talk(READ_HIP_POSITION)

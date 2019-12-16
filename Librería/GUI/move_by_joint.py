@@ -29,41 +29,41 @@ class MoveByJoint(QWidget):
 
         self.page = QLabel(Form)
         self.page.setGeometry(QtCore.QRect(0, 0, 1050, 875))
-        self.page.setStyleSheet("background-image: url(images/p3.png);")
+        self.page.setStyleSheet("background-image: url(GUI/images/p3.png);")
 
         self.elbowRangeText = QtWidgets.QTextBrowser(Form)
         self.elbowRangeText.setGeometry(QtCore.QRect(30, 390, 381, 21))
-        self.elbowRangeText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.elbowRangeText.setStyleSheet("border-image: url(GUI/images/dark_gray.png);")
         self.elbowRangeText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.elbowRangeText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.shoulderRangeText = QtWidgets.QTextBrowser(Form)
         self.shoulderRangeText.setGeometry(QtCore.QRect(30, 570, 381, 21))
-        self.shoulderRangeText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.shoulderRangeText.setStyleSheet("border-image: url(GUI/images/dark_gray.png);")
         self.shoulderRangeText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.shoulderRangeText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.hipRangeText = QtWidgets.QTextBrowser(Form)
         self.hipRangeText.setGeometry(QtCore.QRect(30, 740, 381, 21))
-        self.hipRangeText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.hipRangeText.setStyleSheet("border-image: url(GUI/images/dark_gray.png);")
         self.hipRangeText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.hipRangeText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.elbowPosText = QtWidgets.QTextBrowser(Form)
         self.elbowPosText.setGeometry(QtCore.QRect(340, 360, 181, 21))
-        self.elbowPosText.setStyleSheet("border-image: url(images/yellow.png);")
+        self.elbowPosText.setStyleSheet("border-image: url(GUI/images/yellow.png);")
         self.elbowPosText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.elbowPosText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.shoulderPosText = QtWidgets.QTextBrowser(Form)
         self.shoulderPosText.setGeometry(QtCore.QRect(340, 540, 181, 21))
-        self.shoulderPosText.setStyleSheet("border-image: url(images/yellow.png);")
+        self.shoulderPosText.setStyleSheet("border-image: url(GUI/images/yellow.png);")
         self.shoulderPosText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.shoulderPosText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.hipPosText = QtWidgets.QTextBrowser(Form)
         self.hipPosText.setGeometry(QtCore.QRect(340, 710, 181, 21))
-        self.hipPosText.setStyleSheet("border-image: url(images/yellow.png);")
+        self.hipPosText.setStyleSheet("border-image: url(GUI/images/yellow.png);")
         self.hipPosText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.hipPosText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 

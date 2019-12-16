@@ -1,15 +1,17 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QDialog, QWidget, QApplication, QLabel, QMainWindow
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5              import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets    import QDialog, QWidget, QApplication, QLabel, QMainWindow
+from PyQt5.QtCore       import pyqtSignal, QObject
 
-from move_by_joint import *
-from to_coordinates import * 
+from GUI.move_by_joint      import *
+from GUI.sample_routines    import *
+from GUI.to_coordinates     import * 
+from ARMR1.__init__         import *
 
 class Menu(QMainWindow):
-
     def __init__(self):
-        super().__init__()     
-        self.onMenu = True
+        super().__init__()   
+        self.init_arduino()
+        self.onMenu         = True
 
         self.onGetToCoords = False
         self.GetToCoordsWindow = ToCoordinates()
@@ -20,15 +22,19 @@ class Menu(QMainWindow):
         self.MoveByJointWindow.closing_signal.connect(self.close_window)
 
         self.onSampleRoutines = False
-
+    
+    def init_arduino(self):
         self.initUI()
+        self.ARMR1 = ARMR1()
+        self.setStyleSheet("background-image: url(GUI/images/p1.png);")
+
 
     def initUI(self):      
         self.setMinimumSize(QtCore.QSize(1050, 875))
         self.setMaximumSize(QtCore.QSize(1050, 875))
         self.setGeometry(300, 100, 1050, 875)
-        self.setStyleSheet("background-image: url(images/p1.png);")
-        self.setWindowTitle('ARM R1 Menu')
+        self.setStyleSheet("background-image: url(GUI/images/p0.png);")
+        self.setWindowTitle('ARM R1')
         self.show()
     
     def close_window(self):
@@ -93,9 +99,3 @@ class Menu(QMainWindow):
     def mousePressEvent(self, event):
         x, y = event.x(), event.y()
         self.button_press(self.actual_window(), x, y)
-        
-if __name__ == '__main__':
-    import sys
-    app = QApplication(sys.argv)
-    ex = Menu()
-    sys.exit(app.exec_())

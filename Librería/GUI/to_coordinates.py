@@ -17,37 +17,37 @@ class ToCoordinates(QWidget):
 
         self.page = QLabel(Form)
         self.page.setGeometry(QtCore.QRect(0, 0, 1050, 875))
-        self.page.setStyleSheet("background-image: url(images/p2.png);")
+        self.page.setStyleSheet("background-image: url(GUI/images/p2.png);")
 
         self.statusText = QtWidgets.QTextBrowser(Form)
         self.statusText.setGeometry(QtCore.QRect(80, 830, 600, 21))
-        self.statusText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.statusText.setStyleSheet("border-image: url(GUI/images/dark_gray.png);")
         self.statusText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.statusText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.xCartesian = QtWidgets.QTextEdit(Form)
         self.xCartesian.setGeometry(QtCore.QRect(150, 430, 271, 51))
-        self.xCartesian.setStyleSheet("border-image: url(images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
+        self.xCartesian.setStyleSheet("border-image: url(GUI/images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
 
         self.yCartesian = QtWidgets.QTextEdit(Form)
         self.yCartesian.setGeometry(QtCore.QRect(150, 550, 271, 51))
-        self.yCartesian.setStyleSheet("border-image: url(images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
+        self.yCartesian.setStyleSheet("border-image: url(GUI/images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
 
         self.zCartesian = QtWidgets.QTextEdit(Form)
         self.zCartesian.setGeometry(QtCore.QRect(150, 660, 271, 51))
-        self.zCartesian.setStyleSheet("border-image: url(images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
+        self.zCartesian.setStyleSheet("border-image: url(GUI/images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
         
         self.rCilindric = QtWidgets.QTextEdit(Form)
         self.rCilindric.setGeometry(QtCore.QRect(680, 430, 271, 51))
-        self.rCilindric.setStyleSheet("border-image: url(images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
+        self.rCilindric.setStyleSheet("border-image: url(GUI/images/light_gray.png);\n" "font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
 
         self.thetaCilindric = QtWidgets.QTextEdit(Form)
         self.thetaCilindric.setGeometry(QtCore.QRect(680, 550, 271, 51))
-        self.thetaCilindric.setStyleSheet("border-image: url(images/light_gray.png);\n""font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
+        self.thetaCilindric.setStyleSheet("border-image: url(GUI/images/light_gray.png);\n""font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
         
         self.zCilindric = QtWidgets.QTextEdit(Form)
         self.zCilindric.setGeometry(QtCore.QRect(680, 660, 271, 51))
-        self.zCilindric.setStyleSheet("border-image: url(images/light_gray.png);\n""font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
+        self.zCilindric.setStyleSheet("border-image: url(GUI/images/light_gray.png);\n""font: 1 20pt \"Cantarell\" rgb(21, 21, 20);")
         self.zCilindric.setObjectName("zCilindric")
 
         self.retranslateUi(Form)
