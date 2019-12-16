@@ -4,13 +4,15 @@ from PyQt5.QtWidgets import QDialog, QWidget, QLabel
 
 
 class MoveByJoint(QWidget):
-    closing_signal = QtCore.pyqtSignal()
+    closing_signal  = QtCore.pyqtSignal()
+    send_value      = QtCore.pyqtSignal()   
+
 
     def __init__(self):
         super().__init__()  
-        self.elbow_range_value          = (-654654, 3213213)    # Setear con referencias correctas
-        self.shoulder_range_value       = (-654654, 3213213)
-        self.hip_range_value            = (-654654, 3213213)
+        self.elbow_range          = (-654654, 3213213)    # Setear con referencias correctas
+        self.shoulder_range       = (-654654, 3213213)
+        self.hip_range            = (-654654, 3213213)
 
         self.elbow_pos_value    = 0                             # Setear con valor actual
         self.shoulder_pos_value = 0
@@ -29,41 +31,41 @@ class MoveByJoint(QWidget):
         self.page.setGeometry(QtCore.QRect(0, 0, 1050, 875))
         self.page.setStyleSheet("background-image: url(images/p3.png);")
 
-        self.elbowRange = QtWidgets.QTextBrowser(Form)
-        self.elbowRange.setGeometry(QtCore.QRect(30, 390, 381, 21))
-        self.elbowRange.setStyleSheet("border-image: url(images/dark_gray.png);")
-        self.elbowRange.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.elbowRange.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.elbowRangeText = QtWidgets.QTextBrowser(Form)
+        self.elbowRangeText.setGeometry(QtCore.QRect(30, 390, 381, 21))
+        self.elbowRangeText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.elbowRangeText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.elbowRangeText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
-        self.shoulderRange = QtWidgets.QTextBrowser(Form)
-        self.shoulderRange.setGeometry(QtCore.QRect(30, 570, 381, 21))
-        self.shoulderRange.setStyleSheet("border-image: url(images/dark_gray.png);")
-        self.shoulderRange.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.shoulderRange.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.shoulderRangeText = QtWidgets.QTextBrowser(Form)
+        self.shoulderRangeText.setGeometry(QtCore.QRect(30, 570, 381, 21))
+        self.shoulderRangeText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.shoulderRangeText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.shoulderRangeText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
-        self.hipRange = QtWidgets.QTextBrowser(Form)
-        self.hipRange.setGeometry(QtCore.QRect(30, 740, 381, 21))
-        self.hipRange.setStyleSheet("border-image: url(images/dark_gray.png);")
-        self.hipRange.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.hipRange.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.hipRangeText = QtWidgets.QTextBrowser(Form)
+        self.hipRangeText.setGeometry(QtCore.QRect(30, 740, 381, 21))
+        self.hipRangeText.setStyleSheet("border-image: url(images/dark_gray.png);")
+        self.hipRangeText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.hipRangeText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
-        self.elbowPos = QtWidgets.QTextBrowser(Form)
-        self.elbowPos.setGeometry(QtCore.QRect(340, 360, 181, 21))
-        self.elbowPos.setStyleSheet("border-image: url(images/yellow.png);")
-        self.elbowPos.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.elbowPos.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.elbowPosText = QtWidgets.QTextBrowser(Form)
+        self.elbowPosText.setGeometry(QtCore.QRect(340, 360, 181, 21))
+        self.elbowPosText.setStyleSheet("border-image: url(images/yellow.png);")
+        self.elbowPosText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.elbowPosText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
-        self.shoulderPos = QtWidgets.QTextBrowser(Form)
-        self.shoulderPos.setGeometry(QtCore.QRect(340, 540, 181, 21))
-        self.shoulderPos.setStyleSheet("border-image: url(images/yellow.png);")
-        self.shoulderPos.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.shoulderPos.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.shoulderPosText = QtWidgets.QTextBrowser(Form)
+        self.shoulderPosText.setGeometry(QtCore.QRect(340, 540, 181, 21))
+        self.shoulderPosText.setStyleSheet("border-image: url(images/yellow.png);")
+        self.shoulderPosText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.shoulderPosText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
-        self.hipPos = QtWidgets.QTextBrowser(Form)
-        self.hipPos.setGeometry(QtCore.QRect(340, 710, 181, 21))
-        self.hipPos.setStyleSheet("border-image: url(images/yellow.png);")
-        self.hipPos.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.hipPos.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.hipPosText = QtWidgets.QTextBrowser(Form)
+        self.hipPosText.setGeometry(QtCore.QRect(340, 710, 181, 21))
+        self.hipPosText.setStyleSheet("border-image: url(images/yellow.png);")
+        self.hipPosText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.hipPosText.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -72,13 +74,13 @@ class MoveByJoint(QWidget):
         self._translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(self._translate("ARM R1", "ARM R1"))
 
-        self.set_range_text(self.elbowRange,    self.elbow_range_value)
-        self.set_range_text(self.shoulderRange, self.shoulder_range_value)
-        self.set_range_text(self.hipRange,      self.hip_range_value)
+        self.set_range_text(self.elbowRangeText,    self.elbow_range)
+        self.set_range_text(self.shoulderRangeText, self.shoulder_range)
+        self.set_range_text(self.hipRangeText,      self.hip_range)
 
-        self.set_text(self.elbowPos,    self.elbow_pos_value)
-        self.set_text(self.shoulderPos, self.shoulder_pos_value)
-        self.set_text(self.hipPos,      self.hip_pos_value)
+        self.set_text(self.elbowPosText,    self.elbow_pos_value)
+        self.set_text(self.shoulderPosText, self.shoulder_pos_value)
+        self.set_text(self.hipPosText,      self.hip_pos_value)
 
     def set_text(self, text_edit, text):        # Acualizar posicion de articulacion
         text_edit.setHtml(self._translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -113,28 +115,28 @@ class MoveByJoint(QWidget):
         if x_rbtn_all:                  # Botones de la derecha
                 if y_btn_elbow:
                         self.elbow_pos_value += self.increment
-                        self.set_text(self.elbowPos,    str(self.elbow_pos_value))
+                        self.set_text(self.elbowPosText,    str(self.elbow_pos_value))
 
                 elif y_btn_shoulder:
                         self.shoulder_pos_value += self.increment
-                        self.set_text(self.shoulderPos, str(self.shoulder_pos_value))
+                        self.set_text(self.shoulderPosText, str(self.shoulder_pos_value))
 
                 elif y_btn_hip:
                         self.hip_pos_value += self.increment
-                        self.set_text(self.hipPos,      str(self.hip_pos_value))
+                        self.set_text(self.hipPosText,      str(self.hip_pos_value))
 
         elif x_lbtn_all:               # Botones de la izquierda
                 if y_btn_elbow:
                         self.elbow_pos_value -= self.increment
-                        self.set_text(self.elbowPos,    str(self.elbow_pos_value))
+                        self.set_text(self.elbowPosText,    str(self.elbow_pos_value))
 
                 elif y_btn_shoulder:
                         self.shoulder_pos_value -= self.increment
-                        self.set_text(self.shoulderPos, str(self.shoulder_pos_value))
+                        self.set_text(self.shoulderPosText, str(self.shoulder_pos_value))
 
                 elif y_btn_hip:
                         self.hip_pos_value -= self.increment
-                        self.set_text(self.hipPos,      str(self.hip_pos_value))      
+                        self.set_text(self.hipPosText,      str(self.hip_pos_value))      
 
         if back:                        # Volver al menu principal
                 self.hide()

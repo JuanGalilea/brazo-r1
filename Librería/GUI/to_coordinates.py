@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QDialog, QWidget, QLabel
 
 
 class ToCoordinates(QWidget):
-    closing_signal = QtCore.pyqtSignal()   
+    closing_signal  = QtCore.pyqtSignal()   
+    send_value      = QtCore.pyqtSignal()   
 
     def __init__(self):
         super().__init__()  
