@@ -4,6 +4,8 @@ import math as m
 
 class InvalidOrderException (Exception):pass
 
+fullRotation = 175784
+
 NO_COMMAND                      = 129
 GOODBYE                         = 130
 GO_HOME                         = 131
@@ -78,6 +80,41 @@ class ARMR1:
         else:
             raise InvalidOrderException("Command Not Allowed")
 
+    def angleToOrder(self, x):
+        return x * fullRotation / 360
+
+    def sendToXYZ(self, pos):
+        angles          = self.cartesian2angles(pos)
+        return self.sendToABY(angles)
+
+    def sendToABY(self, angles):
+        hipAngle        = self.angleToOrder(angles[0])
+        shoulderAngle   = self.angleToOrder(angles[1])
+        elbowAngle      = self.angleToOrder(angles[2])
+                                                                # speak(order, serial)
+                                                                #     print(next(portReader))
+                                                                #     speak(value // 1024, serial)
+                                                                #     print(next(portReader))
+                                                                #     speak((value % 1024) // 8, serial)
+                                                                #     print(next(portReader))
+        try:
+            self.talk(CHANGE_ELBOW_REFERENCE)
+            self.talk(hipAngle // 1024)
+            self.talk(hipAngle % 1024)
+            
+            self.talk(CHANGE_SHOULDER_REFERENCE)
+            self.talk(shoulderAngle // 1024)
+            self.talk(shoulderAngle % 1024)
+            
+            self.talk(CHANGE_ELBOW_REFERENCE)
+            self.talk(elbowAngle // 1024)
+            self.talk(elbowAngle % 1024)
+
+            self.talk(UPDATE_ALL_REFERENCES)
+        except InvalidOrderException:
+            print("Error: POSITION OUT OF REACH")
+
+
     @staticmethod
     def __serialLineReader(port):
         while True:
@@ -103,7 +140,6 @@ class ARMR1:
             a = next(self.reader)
 
     def cartesian2angles(self, xs):  # esta funcion toma un punto en el espacio de tarea y lo s tranforma al espacio de estados
-
         d1 = 84 / 1000  # sp.var('d_1')
         d2 = 225 / 1000  ##sp.var('d_2')
         d3 = 225 / 1000  # sp.var('d_3')
