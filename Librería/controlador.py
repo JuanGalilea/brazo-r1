@@ -8,11 +8,6 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 
-def cross(v1, v2):
-    return sp.Matrix([v1[1] * v2[2] - v1[2] * v2[1],
-                      v1[2] * v2[0] - v1[0] * v2[2],
-                      v1[0] * v2[1] - v1[1] * v2[0],
-                      1])
 
 
 def get_DH(theta=0, d=0, a=0, alpha=0):  # retorna la matriz DH ^(i-1)A_i y el vector ^(i-1)p_i
@@ -188,10 +183,20 @@ def x2q(x):  # esta funcion toma un punto en el espacio de tarea y lo s tranform
     return sp.Matrix(3, 1, [q1, q2, q3])
 
 
-def get_trayect(x1, x2, type='line_SS_poli', controler_speed=1000,
+def c2q(c): # esta funcion toma un punto en el espacio de tarea en coordenadas cilindricas (r, theta, h) y lo s tranforma al espacio de estados
+    x = c[0]*sp.cos(c[1])
+    y = c[0]*sp.sin(c[1])
+    z = c[2]
+    q=x2q([x, y, z])
+
+    return q
+    
+
+
+def get_trayect(x1, x2, type='line_X_poli', controler_speed=1000,
                 out_ts=False):  # esta funcion toma dos puntos en el espacio de trabajo y genera una trayectoria entre estos
     t = sp.var('t')
-    if type == 'line_SS_poli':
+    if type == 'line_X_poli':
         p1 = x2q(x1)
         p2 = x2q(x2)
 
@@ -219,54 +224,35 @@ def get_trayect(x1, x2, type='line_SS_poli', controler_speed=1000,
         trayectoria = pos(t_sampled)
 
 
-    elif type == 'line_TS_poli':
-        p1 = x1
-        p2 = x2
+    elif type == 'line_C_poli':
 
-        T = 1
+        p1 = c2q(x1)
+        p2 = c2q(x2)
 
-        a3 = 10 / T ** 3
-        a4 = -15 / T ** 4
-        a5 = 6 / T ** 5
+        dist_max = max(abs(p2 - p1))
 
-        s = a3 * t ** 3 + a4 * t ** 4 + a5 * t ** 5
-        trayectoria_preeliminar = x2q(p1 + (p2 - p1) * s)
-        v = sp.diff(trayectoria_preeliminar, t)
-        a = sp.diff(v, t)
+        r1 = (15 * dist_max) / (q_d_max * 8)
+        r2 = sp.sqrt(10) * 3 ** (3 / 4) * sp.sqrt(dist_max / q_dd_max) / 3
 
-        T = max(max(abs(v.subs(t, 0.5))), 1)
+        T = max(r1.evalf(), r2.evalf())
 
         a3 = 10 / T ** 3
         a4 = -15 / T ** 4
         a5 = 6 / T ** 5
 
         s = a3 * t ** 3 + a4 * t ** 4 + a5 * t ** 5
-        trayectoria_preeliminar = x2q(p1 + (p2 - p1) * s)
-        v = sp.diff(trayectoria_preeliminar, t)
-        a = sp.diff(v, t)
-        sp.pprint(max(abs(v.subs(t, T * 0.5))))
-        sp.pprint(max(abs(a.subs(t, T * 0.25))))
+        trayectoria = p1 + (p2 - p1) * s
 
-        """t = np.linspace(0, 1, controler_speed)
+        if out_ts:
+            trayectoria = q2x(trayectoria)
 
-        v = sp.lambdify(t, v.eval(), 'numpy')
-        v = v(t)
-        a = sp.lambdify(t, a.eval(), 'numpy')
-        a = a(t)
-        v_max_escalado = q_d_max / max(v.max,abs(v.min))
-        a_max_escalado = q_dd_max / max(a.max,abs(a.min))
-        factor_escalamiento = max(v_max_escalado,a_max_escalado)
+        pos = sp.lambdify(t, trayectoria, 'numpy')
 
-        s = s*factor_escalamiento
-        trayectoria_final = x2q(p1 + (p2 - p1) * s)
-
-        pos = sp.lambdify(t, trayectoria_final, 'numpy')
-
-        t_sampled = np.linspace(0, 1/factor_escalamiento, round(factor_escalamiento * controler_speed))
+        t_sampled = np.linspace(0, np.float(T), round(np.float(T) * controler_speed))
 
         trayectoria = pos(t_sampled)
 
-        #trayectoria = np.clip(trayectoria)"""
+
 
     return trayectoria, np.float(T)
 

@@ -5,7 +5,8 @@ from PyQt5.QtCore       import pyqtSignal, QObject
 from GUI.move_by_joint      import *
 from GUI.sample_routines    import *
 from GUI.to_coordinates     import * 
-from ARMR1.__init__         import *
+#from ARMR1.__init__         import *
+from GUI.images            import *
 
 class Menu(QMainWindow):
     def __init__(self):
@@ -22,11 +23,13 @@ class Menu(QMainWindow):
         self.MoveByJointWindow.closing_signal.connect(self.close_window)
 
         self.onSampleRoutines = False
+        self.SampleRoutinesWindow = SampleRoutines()
+        self.SampleRoutinesWindow.closing_signal.connect(self.close_window)
     
     def init_arduino(self):
         self.initUI()
-        self.ARMR1 = ARMR1()
-        self.setStyleSheet("background-image: url(GUI/images/p1.png);")
+        #self.ARMR1 = ARMR1()
+        self.setStyleSheet("background-image: url(p1.png);")
 
 
     def initUI(self):      
@@ -53,7 +56,7 @@ class Menu(QMainWindow):
 
         elif actual == "onSampleRoutines":
             self.onSampleRoutines = False
-            #self.onSampleRoutines.hide()
+            self.onSampleRoutines.hide()
         
         self.onMenu = True                                  # Volver al Menu principal
         self.show()
@@ -83,7 +86,11 @@ class Menu(QMainWindow):
                     self.MoveByJointWindow.show()
 
                 elif y_samples:                             # Boton "Sample Routines"
-                    pass
+                    self.onMenu = False
+                    self.hide()
+
+                    self.onSampleRoutines = True
+                    self.SampleRoutinesWindow.show()
 
 
     def actual_window(self):

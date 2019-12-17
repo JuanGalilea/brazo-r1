@@ -1,38 +1,37 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QDialog, QWidget, QLabel
 
 
-class SampleRoutines(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(370, 390, 84, 28))
-        self.pushButton.setObjectName("pushButton")
-        self.textEdit = QtWidgets.QTextEdit(self.centralwidget)
-        self.textEdit.setGeometry(QtCore.QRect(260, 100, 104, 70))
-        self.textEdit.setObjectName("textEdit")
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+class SampleRoutines(QWidget):
+    closing_signal  = QtCore.pyqtSignal()
 
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.pushButton.setText(_translate("MainWindow", "PushButton"))
-        self.textEdit.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Cantarell\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">dfssdfsdfsd</p></body></html>"))
+    def __init__(self):
+        super().__init__() 
+        self.setupUi(self)
 
+    def setupUi(self, Form):        
+        Form.setGeometry(300, 100, 1050, 875)
+        Form.setMinimumSize(QtCore.QSize(1050, 875))
+        Form.setMaximumSize(QtCore.QSize(1050, 875))
 
+        self.page = QLabel(Form)
+        self.page.setGeometry(QtCore.QRect(0, 0, 1050, 875))
+        self.page.setStyleSheet("background-image: url(GUI/images/p4.png);")
+
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
+
+    def retranslateUi(self, Form):
+        self._translate = QtCore.QCoreApplication.translate
+        Form.setWindowTitle(self._translate("ARM R1", "ARM R1"))
+    
+    def mousePressEvent(self, event):
+        super(MoveByJoint, self).mousePressEvent(event)
+        x, y = event.x(), event.y()
+
+        back = 869 < x and x < 1012 and 814 < y and y < 843
+
+        if back:                        # Volver al menu principal
+                self.hide()
+                self.closing_signal.emit()
