@@ -196,7 +196,7 @@ class ARMR1:
         return [q1, q2 + 90, q3]
 
 if __name__ == "__main__":
-    a = ARMR1(serialPort='/dev/ttyUSB1')
+    a = ARMR1(serialPort='/dev/ttyUSB0')
     opt = "asdf"
     while opt != "0":
         print("MENU:")

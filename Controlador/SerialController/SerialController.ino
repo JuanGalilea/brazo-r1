@@ -95,8 +95,8 @@ volatile bool hipZeroed = false;
 volatile long hipPos    = 60000;
 long  hipPosHist[5]        ;
 long  hipHome           = 0;
-long  hipNextTarget     = 0;
-long  hipRef            = 0;
+long  hipNextTarget     = 60000;
+long  hipRef            = 60000;
 bool  hipVelControl     = 0;
 long  hipVelNextTarget  = 0;
 long  hipVelRef         = 0;
@@ -126,7 +126,7 @@ float shoulderD               = 20;
 float shoulderVP              = 0;
 float shoulderVI              = 0;
 float shoulderVD              = 0;
-long  shoulderKg              = 16; // MAS ALTO = MAS DÉBIL
+long  shoulderKg              = 18; // MAS ALTO = MAS DÉBIL (16 antes)
 float shoulderFeedForward     = 1;
 long  shoulderAccError        = 0;
 int   shoulderIConstrain      = 5000;
@@ -147,7 +147,7 @@ float elbowD              = 10;
 float elbowVP             = 0;
 float elbowVI             = 0;
 float elbowVD             = 0;
-long  elbowKg             = 16;
+long  elbowKg             = 25;
 long  elbowAccError       = 0;
 int   elbowIConstrain     = 5000;
 
@@ -215,15 +215,13 @@ void loop() {
       controlHip();
     }
 
-    // Serial.print(elbowPos,DEC);
-    // Serial.print(" : ");
-    // Serial.print(elbowMotorT,DEC);
-    // Serial.print(" -> ");
-    // Serial.print(readFromReg(shoulderEOTShift),DEC);
-    // Serial.print(" : ");
-    // Serial.print(shoulderPos,DEC);
-    // Serial.print(" : ");
-    // Serial.print(shoulderMotorT,DEC);
+    Serial.print(elbowPos,DEC);
+    Serial.print(" : ");
+    Serial.print(elbowMotorT,DEC);
+    Serial.print(" -> ");
+    Serial.print(shoulderPos,DEC);
+    Serial.print(" : ");
+    Serial.print(shoulderMotorT,DEC);
     Serial.print(" -> ");
     Serial.print(hipPos,DEC);
     Serial.print(" : ");
