@@ -86,9 +86,9 @@ class ARMR1:
 
     def sendToXYZ(self, pos, execute = True):
         angles          = self.cartesian2angles(pos)
-        return self.sendToABY(angles, excecute= execute)
+        return self.sendToABY(angles, execute= execute)
 
-    def sendToABY(self, angles, excecute = True):
+    def sendToABY(self, angles, execute = True):
         hipAngle        = self.angleToOrder(angles[0])
         shoulderAngle   = self.angleToOrder(angles[1])
         elbowAngle      = self.angleToOrder(angles[2])
@@ -113,12 +113,12 @@ class ARMR1:
             self.talk(elbowAngle // 1024)
             self.talk(elbowAngle % 1024)
 
-            if excecute:
+            if execute:
                 self.talk(UPDATE_ALL_REFERENCES)
         except InvalidOrderException:
             print("Error: POSITION OUT OF REACH")
         
-    def excecuteNextReference(self):
+    def executeNextReference(self):
         self.talk(UPDATE_ALL_REFERENCES)
 
     @staticmethod
