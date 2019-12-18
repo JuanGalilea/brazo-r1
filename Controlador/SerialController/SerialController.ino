@@ -101,7 +101,7 @@ bool  hipVelControl     = 0;
 long  hipVelNextTarget  = 0;
 long  hipVelRef         = 0;
 int   hipMotorT         = 0;
-float hipP              = 4;
+float hipP              = 8;
 float hipI              = 1.5;
 float hipD              = 40;
 float hipVP             = 0;
@@ -127,6 +127,7 @@ float shoulderVP              = 0;
 float shoulderVI              = 0;
 float shoulderVD              = 0;
 long  shoulderKg              = 16; // MAS ALTO = MAS DÉBIL
+float shoulderFeedForward     = 1;
 long  shoulderAccError        = 0;
 int   shoulderIConstrain      = 5000;
 
@@ -146,6 +147,7 @@ float elbowD              = 10;
 float elbowVP             = 0;
 float elbowVI             = 0;
 float elbowVD             = 0;
+long  elbowKg             = 16;
 long  elbowAccError       = 0;
 int   elbowIConstrain     = 5000;
 
@@ -619,10 +621,14 @@ void controlShoulder () {
   shoulderAccError = constrain(integrativeLoss * shoulderAccError + shoulderRef - shoulderPos, -shoulderIConstrain, shoulderIConstrain);
   double p = (shoulderRef - shoulderPos) * shoulderP;
   double d = shoulderVel() * (-shoulderD);
-  double aux = map(shoulderPos, 0, 110000,0,180);
-  double g = ((aux - 90)*abs(aux - 90)) / -shoulderKg;
   long   i = shoulderAccError * shoulderI;
-  shoulderMotorT = g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+
+  double aux = map(shoulderPos, 5000, 135000,0,180);
+  if (aux > 180)  {aux = 360 - aux;}
+  if (aux < 0)    {aux = abs(aux);}
+  double g = ((aux - 90)*abs(aux - 90)) / -shoulderKg;
+
+  shoulderMotorT = (- elbowMotorT * shoulderFeedForward) + g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
 void controlShoulderV () {
@@ -636,7 +642,13 @@ void controlElbow () {
   double p = (elbowRef - elbowPos) * elbowP;
   double d = elbowVel() * (-elbowD);
   long   i = elbowAccError * elbowI;
-  elbowMotorT = map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+
+  double aux = map(shoulderPos -  elbowPos, -65000, 56000,-90,90);
+  if (aux > 90)   {aux = 180 - aux;}
+  if (aux < -90)  {aux = -180 - aux;}
+  double g = ((aux) * abs(aux)) / elbowKg;
+
+  elbowMotorT = g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 //   return map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
