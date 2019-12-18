@@ -80,7 +80,7 @@
 long fullRotation = 175784;
 float integrativeLoss = 0.8;
 bool isZeroing    = false;
-char histPointer  = 0;
+int  histPointer  = 0;
 long startTime    = 0;
 long lastTime     = 0;
 
@@ -101,9 +101,9 @@ bool  hipVelControl     = 0;
 long  hipVelNextTarget  = 0;
 long  hipVelRef         = 0;
 int   hipMotorT         = 0;
-float hipP              = 0;
-float hipI              = 0;
-float hipD              = 0;
+float hipP              = 4;
+float hipI              = 1.5;
+float hipD              = 40;
 float hipVP             = 0;
 float hipVI             = 0;
 float hipVD             = 0;
@@ -121,8 +121,7 @@ long  shoulderVelNextTarget   = 0;
 long  shoulderVelRef          = 0;
 int   shoulderMotorT          = 0;
 float shoulderP               = 4;
-float shoulderI               = 0;
-// float shoulderI               = 1.5;
+float shoulderI               = 1.5;
 float shoulderD               = 20;
 float shoulderVP              = 0;
 float shoulderVI              = 0;
@@ -142,8 +141,7 @@ long  elbowVelNextTarget  = 0;
 long  elbowVelRef         = 0;
 int   elbowMotorT         = 0;
 float elbowP              = 4;
-float elbowI              = 0;
-// float elbowI              = 0.9;
+float elbowI              = 0.9;
 float elbowD              = 10;
 float elbowVP             = 0;
 float elbowVI             = 0;
@@ -215,17 +213,15 @@ void loop() {
       controlHip();
     }
 
-    Serial.print(elbowPos,DEC);
-    Serial.print(" : ");
-    Serial.print(elbowMotorT,DEC);
-    Serial.print(" : ");
-    Serial.print(elbowVel(),DEC);
-    Serial.print(" -> ");
-    Serial.print(shoulderPos,DEC);
-    Serial.print(" : ");
-    Serial.print(shoulderMotorT,DEC);
-    Serial.print(" : ");
-    Serial.print(shoulderVel(),DEC);
+    // Serial.print(elbowPos,DEC);
+    // Serial.print(" : ");
+    // Serial.print(elbowMotorT,DEC);
+    // Serial.print(" -> ");
+    // Serial.print(readFromReg(shoulderEOTShift),DEC);
+    // Serial.print(" : ");
+    // Serial.print(shoulderPos,DEC);
+    // Serial.print(" : ");
+    // Serial.print(shoulderMotorT,DEC);
     Serial.print(" -> ");
     Serial.print(hipPos,DEC);
     Serial.print(" : ");
@@ -466,7 +462,7 @@ void doHipEncB() {
 
 void doShoulderEncA() {
   if (readFromReg(shoulderEncAShift) == readFromReg(shoulderEncBShift)) {
-    if (readFromReg(shoulderEOTShift)) {shoulderPos = 0;}
+    if (readFromReg(shoulderEOTShift)) {shoulderPos --;}
     else {shoulderPos--;}
   } 
   else {
@@ -479,14 +475,14 @@ void doShoulderEncB() {
     shoulderPos++;
   } 
   else {
-    if (readFromReg(shoulderEOTShift)) {shoulderPos = 0;}
+    if (readFromReg(shoulderEOTShift)) {shoulderPos --;}
     else {shoulderPos--;}
   }
 }
 
 void doElbowEncA() {
   if (readFromReg(elbowEncAShift) == readFromReg(elbowEncBShift)) {
-    if (readFromReg(elbowEOTShift)) {elbowPos--;}
+    if (readFromReg(elbowEOTShift)) {elbowPos = 0;}
     // if (readFromReg(elbowEOTShift)) {elbowPos = 0;}
     else {elbowPos--;}
   } 
@@ -501,7 +497,7 @@ void doElbowEncB() {
   } 
   else {
     // if (readFromReg(elbowEOTShift)) {elbowPos = 0;}
-    if (readFromReg(elbowEOTShift)) {elbowPos--;}
+    if (readFromReg(elbowEOTShift)) {elbowPos = 0;}
     else {elbowPos--;}
   }
 }
@@ -545,16 +541,17 @@ bool readFromReg(int shift) {
   return (inputREG -> PIO_PDSR >> shift) & lastPinMask;
 }
 
-char to05 (char entrada) {
-  if (0 <= entrada < 5) {
+int to05 (int entrada) {
+  if (0 <= entrada and entrada < 5) {
     return entrada;
   }
-  else if (0 < entrada) {
-    return to05(entrada - 5);
+  else if (5 <= entrada) {
+    return entrada % 5;
   }
   else {
-    return to05(entrada + 5);
+    return entrada + ((abs(entrada) / 5) +1 ) * 5;
   }
+  
 }
 
 double hipVel () {
@@ -582,14 +579,14 @@ double shoulderVel () {
 }
 
 double elbowVel () {
-  double speed1 = (elbowPosHist[to05(histPointer - 1)] - elbowPosHist[to05(histPointer - 2)]) 
-                  / (timeHist[to05(histPointer - 1)] - timeHist[to05(histPointer - 2)]);
-  double speed2 = (elbowPosHist[to05(histPointer - 2)] - elbowPosHist[to05(histPointer - 3)]) 
-                  / (timeHist[to05(histPointer - 2)] - timeHist[to05(histPointer - 3)]);
-  double speed3 = (elbowPosHist[to05(histPointer - 3)] - elbowPosHist[to05(histPointer - 4)]) 
-                  / (timeHist[to05(histPointer - 3)] - timeHist[to05(histPointer - 4)]);
-  double speed4 = (elbowPosHist[to05(histPointer - 4)] - elbowPosHist[to05(histPointer - 5)]) 
-                  / (timeHist[to05(histPointer - 4)] - timeHist[to05(histPointer - 5)]);
+  double speed1 = (elbowPosHist[to05(histPointer + 5)] - elbowPosHist[to05(histPointer + 4)]) 
+                  / (timeHist[to05(histPointer + 5)] - timeHist[to05(histPointer + 4)]);
+  double speed2 = (elbowPosHist[to05(histPointer + 4)] - elbowPosHist[to05(histPointer + 3)]) 
+                  / (timeHist[to05(histPointer + 4)] - timeHist[to05(histPointer + 3)]);
+  double speed3 = (elbowPosHist[to05(histPointer + 3)] - elbowPosHist[to05(histPointer + 2)]) 
+                  / (timeHist[to05(histPointer + 3)] - timeHist[to05(histPointer + 2)]);
+  double speed4 = (elbowPosHist[to05(histPointer + 2)] - elbowPosHist[to05(histPointer + 1)]) 
+                  / (timeHist[to05(histPointer + 2)] - timeHist[to05(histPointer + 1)]);
   return (speed1 + speed2 + speed3 + speed4) / 4;
 }
 
@@ -651,8 +648,8 @@ void controlElbowV () {
 void sendRefToMotor(int motor, int ref) {
   switch (motor) {
   case 0: // move Hip according to ref
-    Serial2.print("M0: ");
-    Serial2.println(ref ,DEC);
+    Serial2.print("M1: ");
+    Serial2.println(-ref ,DEC);
     break;
   case 1: // move Shoulder according to ref
     Serial3.print("M1: ");

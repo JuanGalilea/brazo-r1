@@ -84,11 +84,11 @@ class ARMR1:
     def angleToOrder(self, x):
         return x * fullRotation / 360
 
-    def sendToXYZ(self, pos):
+    def sendToXYZ(self, pos, execute = True):
         angles          = self.cartesian2angles(pos)
-        return self.sendToABY(angles)
+        return self.sendToABY(angles, excecute= execute)
 
-    def sendToABY(self, angles):
+    def sendToABY(self, angles, excecute = True):
         hipAngle        = self.angleToOrder(angles[0])
         shoulderAngle   = self.angleToOrder(angles[1])
         elbowAngle      = self.angleToOrder(angles[2])
@@ -113,7 +113,8 @@ class ARMR1:
             self.talk(elbowAngle // 1024)
             self.talk(elbowAngle % 1024)
 
-            self.talk(UPDATE_ALL_REFERENCES)
+            if excecute:
+                self.talk(UPDATE_ALL_REFERENCES)
         except InvalidOrderException:
             print("Error: POSITION OUT OF REACH")
 
@@ -131,6 +132,12 @@ class ARMR1:
                 else:
                     yield b""
             yield aux
+
+    @staticmethod
+    def messageSplitter(x):
+        if x // 1024 > 127:
+            raise OutOfRangeReference("Number too high to be sent to robot")
+        return (x // 1024, (x % 1024) // 8)
 
     @staticmethod
     def __serialCharReader(port):
@@ -171,4 +178,46 @@ class ARMR1:
         return [q1, q2 + 90, q3]
 
 if __name__ == "__main__":
-    a = ARMR1()
+    a = ARMR1(serialPort='/dev/ttyUSB1')
+    opt = "asdf"
+    while opt != "0":
+        print("MENU:")
+        print("1 .- Change Hip Reference")
+        print("2 .- Change Shoulder Reference")
+        print("3 .- Change Elbow Reference")
+        print("4 .- Excecute New References")
+        print("5 .- Read Hip Position")
+        print("6 .- Read Shoulder Position")
+        print("7 .- Read Elbow Position")
+        print("0 .- Exit Demo")
+        opt = input(">>  ")
+        if opt == "1":
+            (big,smol) = ARMR1.messageSplitter(int(input("Ref? ")))
+            print(a.talk(CHANGE_HIP_REFERENCE))
+            print(a.talk(big))
+            print(a.talk(smol))
+            # sendWithPayload(serial, CHANGE_HIP_REFERENCE, int(input("Ref? ")))
+        if opt == "2":
+            (big,smol) = ARMR1.messageSplitter(int(input("Ref? ")))
+            a.talk(CHANGE_SHOULDER_REFERENCE)
+            a.talk(big)
+            a.talk(smol)
+            # sendWithPayload(serial, CHANGE_SHOULDER_REFERENCE, int(input("Ref? ")))
+        if opt == "3":
+            (big,smol) = ARMR1.messageSplitter(int(input("Ref? ")))
+            a.talk(CHANGE_ELBOW_REFERENCE)
+            a.talk(big)
+            a.talk(smol)
+            # sendWithPayload(serial, CHANGE_ELBOW_REFERENCE, int(input("Ref? ")))
+        if opt == "4":
+            a.talk(UPDATE_ALL_REFERENCES)
+            # print(str(send(serial, UPDATE_ALL_REFERENCES)))
+        if opt == "5":
+            print(int(a.talk(READ_HIP_POSITION)[0])*2.815, "°")
+            # print(send(serial, READ_HIP_POSITION)[0] * 2.815, "°")
+        if opt == "6":
+            print(int(a.talk(READ_SHOULDER_POSITION)[0])*2.815, "°")
+            # print(send(serial, READ_SHOULDER_POSITION)[0] * 2.815, "°")
+        if opt == "7":
+            print(int(a.talk(READ_ELBOW_POSITION)[0])*2.815, "°")
+            # print(send(serial, READ_ELBOW_POSITION)[0] * 2.815, "°")
