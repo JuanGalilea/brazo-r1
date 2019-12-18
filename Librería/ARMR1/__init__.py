@@ -152,9 +152,9 @@ class ARMR1:
             a = next(self.reader)
 
     def cartesian2angles(self, xs):  # esta funcion toma un punto en el espacio de tarea y lo s tranforma al espacio de estados
-        d1 = 84 / 1000  # sp.var('d_1')
-        d2 = 225 / 1000  ##sp.var('d_2')
-        d3 = 225 / 1000  # sp.var('d_3')
+        d1 = 84 / 1000      # sp.var('d_1')
+        d2 = 225 / 1000     # sp.var('d_2')
+        d3 = 225 / 1000     # sp.var('d_3')
 
         q1 = m.atan2(xs[1], xs[0])
 
