@@ -117,7 +117,9 @@ class ARMR1:
                 self.talk(UPDATE_ALL_REFERENCES)
         except InvalidOrderException:
             print("Error: POSITION OUT OF REACH")
-
+        
+    def excecuteNextReference(self):
+        self.talk(UPDATE_ALL_REFERENCES)
 
     @staticmethod
     def __serialLineReader(port):
