@@ -17,7 +17,7 @@ class SampleRoutines(QWidget):
 
         self.page = QLabel(Form)
         self.page.setGeometry(QtCore.QRect(0, 0, 1050, 875))
-        self.page.setStyleSheet("background-image: url(GUI/images/p4.png);")
+        self.page.setStyleSheet("background-image: url(p4.png);")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
