@@ -63,7 +63,7 @@ class ARMR1:
             input_data = next(self.reader)
         self.clearSerial()
 
-    def getPositions(self): # Entrega angulos a resolución de 1.536° , puede entregar valores muy altos en caso de estar en negativos la posición real
+    def getPositions(self): # Entrega angulos a resolución de 1.536° (no confiar mucho en negativos)
         hip = ARMR1.parsePosition(self.talk(READ_HIP_POSITION))
         shoulder = ARMR1.parsePosition(self.talk(READ_SHOULDER_POSITION))
         elbow = ARMR1.parsePosition(self.talk(READ_ELBOW_POSITION))
@@ -132,7 +132,10 @@ class ARMR1:
 
     @staticmethod
     def parsePosition(pos):
-        return 1.536 * int(pos[0])
+        aux = 1.536 * int(pos[0])
+        if aux > 300:
+            return aux - 360
+        return aux
 
     @staticmethod
     def __serialLineReader(port):
