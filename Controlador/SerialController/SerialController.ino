@@ -92,7 +92,7 @@ bool exec = true;
 long timeHist[5];
 
 volatile bool hipZeroed = false;
-volatile long hipPos    = 0;
+volatile long hipPos    = 60000;
 long  hipPosHist[5]        ;
 long  hipHome           = 0;
 long  hipNextTarget     = 0;
