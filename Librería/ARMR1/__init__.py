@@ -63,11 +63,20 @@ class ARMR1:
             input_data = next(self.reader)
         self.clearSerial()
 
-    def getPositions(self):
-        hip = self.talk(READ_HIP_POSITION)
-        shoulder = self.talk(READ_SHOULDER_POSITION)
-        elbow = self.talk(READ_ELBOW_POSITION)
+    def getPositions(self): # Entrega angulos a resolución de 1.536° , puede entregar valores muy altos en caso de estar en negativos la posición real
+        hip = ARMR1.parsePosition(self.talk(READ_HIP_POSITION))
+        shoulder = ARMR1.parsePosition(self.talk(READ_SHOULDER_POSITION))
+        elbow = ARMR1.parsePosition(self.talk(READ_ELBOW_POSITION))
+
         return (hip, shoulder, elbow)
+
+    def closeToWaypoint(self, angles, threshold = 5):
+        (hip, shoulder, elbow) = self.getPositions()
+        if abs(hip - angles[0]) < threshold:
+            if abs(shoulder - angles[1]) < threshold:
+                if abs(elbow - angles[2]) < threshold:
+                    return True
+        return False
 
     def talk(self, msg):
         self._speak(msg)
@@ -120,6 +129,10 @@ class ARMR1:
         
     def executeNextReference(self):
         self.talk(UPDATE_ALL_REFERENCES)
+
+    @staticmethod
+    def parsePosition(pos):
+        return 1.536 * int(pos[0])
 
     @staticmethod
     def __serialLineReader(port):
