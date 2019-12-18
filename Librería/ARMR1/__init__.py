@@ -112,15 +112,15 @@ class ARMR1:
         try:
             self.talk(CHANGE_ELBOW_REFERENCE)
             self.talk(hipAngle // 1024)
-            self.talk(hipAngle % 1024)
+            self.talk((hipAngle % 1024) // 8)
             
             self.talk(CHANGE_SHOULDER_REFERENCE)
             self.talk(shoulderAngle // 1024)
-            self.talk(shoulderAngle % 1024)
+            self.talk((shoulderAngle % 1024) // 8)
             
             self.talk(CHANGE_ELBOW_REFERENCE)
             self.talk(elbowAngle // 1024)
-            self.talk(elbowAngle % 1024)
+            self.talk((elbowAngle % 1024) // 8)
 
             if execute:
                 self.talk(UPDATE_ALL_REFERENCES)
