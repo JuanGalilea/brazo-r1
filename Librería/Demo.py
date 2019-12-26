@@ -1,3 +1,5 @@
+## Código de muestra para controlar de forma básica el brazo desde consola
+
 from ARMR1 import *
 from serial import Serial, EIGHTBITS
 import random
@@ -7,7 +9,6 @@ from code import serialLineReader, serialCharReader, speak, listen
 
 def run():
     port = '/dev/ttyUSB0'
-    start = time.time()
     serial = Serial(port, 115200, timeout=0.1, bytesize=EIGHTBITS)
     global portReader
     global portLineReader

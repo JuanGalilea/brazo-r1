@@ -1,12 +1,16 @@
+# Librería de comunicación y control del brazo
+
 from serial import Serial, EIGHTBITS
 from time import sleep
 import math as m
 
-class InvalidOrderException (Exception):pass
-class OutOfRangeReference   (Exception):pass
+# Excepciones que puede levantar el brazo
+class InvalidOrderException (Exception):pass    # La orden que se quiere enviar no existe
+class OutOfRangeReference   (Exception):pass    # La referencia entregada es un valor fuera de rango (Movimiento seguro va de 0 a 120K)
 
 fullRotation = 175784
 
+# Valores hardcoded de las distintas instrucciones (Hay algunas mas que acepta el controlador pero no estan incorporadas aca)
 NO_COMMAND                      = 129
 GOODBYE                         = 130
 GO_HOME                         = 131
@@ -45,23 +49,23 @@ VALID_COMMANDS =    [ NO_COMMAND
                     , CHANGE_ELBOW_REFERENCE_50
                     ]
 
-class ARMR1:
+class ARMR1:                # Objeto que maneja la comunicación (al crearlo se inicia la comunicación)
 
     def __init__(self
-                , serialPort    = '/dev/ttyUSB0'
-                , baudrate      = 115200
-                , timeout       = 0.1
-                , bytesize      = EIGHTBITS):
+                , serialPort    = '/dev/ttyUSB0'    # Puerto por defecto
+                , baudrate      = 115200            # Baudrate por defecto definido en el código arduino
+                , timeout       = 0.1               # Timeout de la comunicación serial
+                , bytesize      = EIGHTBITS):       # Tamaño de los mensajes a enviar y recibir (No Tocar)
         self.connection      = Serial(serialPort, baudrate, timeout = timeout, bytesize = bytesize)
-        self.reader     = ARMR1.__serialCharReader(self.connection)
-        self.lineReader = ARMR1.__serialLineReader(self.connection)
+        self.reader     = ARMR1.__serialCharReader(self.connection)     # Inicialización de generadores utilizados en lectura
+        self.lineReader = ARMR1.__serialLineReader(self.connection)     # Lector de lineas completas (Usado en DEBUG)
 
         print("Reset Arduino to Sync...")
         input_data = b"a"
-        while input_data != b'S':
-            self._speak(NO_COMMAND)
+        while input_data != b'S':                   # Cuelga el código hasta que el arduino responda un mensaje (resetear arduino)
+            self._speak(NO_COMMAND)                 # Arduino contesta a esto con una S
             input_data = next(self.reader)
-        self.clearSerial()
+        self.clearSerial()                          # Limpiamos el puerto de la basura que puede haber quedado y quedamos listos para la comunicación y operacion real
 
     def getPositions(self): # Entrega angulos a resolución de 1.536° (no confiar mucho en negativos)
         hip = ARMR1.parsePosition(self.talk(READ_HIP_POSITION))
@@ -70,7 +74,7 @@ class ARMR1:
 
         return (hip, shoulder, elbow)
 
-    def closeToWaypoint(self, angles, threshold = 5):
+    def closeToWaypoint(self, angles, threshold = 5):   #True si se está a menos de 5 grados de los valores pedidos en toda articulacion
         (hip, shoulder, elbow) = self.getPositions()
         if abs(hip - angles[0]) < threshold:
             if abs(shoulder - angles[1]) < threshold:
@@ -78,41 +82,36 @@ class ARMR1:
                     return True
         return False
 
-    def talk(self, msg):
+    def talk(self, msg):                                # envía un mensaje y entrega la respuesta del esclavo
         self._speak(msg)
         return next(self.reader)
 
-    def _speak(self, msg):
-        if (0 <= msg < 128) or msg in VALID_COMMANDS:
+    def _speak(self, msg):                              # Funcion interna de envío del mensaje
+        if (0 <= msg < 128) or msg in VALID_COMMANDS:   # Es un literal o una orden válida?
             aux = bytearray()
             aux.append(msg)
             self.connection.write(aux)
         else:
-            raise InvalidOrderException("Command Not Allowed")
+            raise InvalidOrderException("Command Not Allowed")  # se levanta si no es literal ni orden válida
 
-    def angleToOrder(self, x):
+    def angleToOrder(self, x):                          # Transforma de angulo a estado
         return x * fullRotation / 360
 
-    def sendToXYZ(self, pos, execute = True):
+    def sendToXYZ(self, pos, execute = True):           # Envía al robot a un lugar determinado en cartesianas (no confiarle nada)
         angles          = self.cartesian2angles(pos)
         return self.sendToABY(angles, execute= execute)
 
-    def sendToABY(self, angles, execute = True):
+    def sendToABY(self, angles, execute = True):        # Envía al robot a un lugar en espacio de estados (angulos articulaciones)
         hipAngle        = self.angleToOrder(angles[0])
         shoulderAngle   = self.angleToOrder(angles[1])
         elbowAngle      = self.angleToOrder(angles[2])
-                                                                # speak(order, serial)
-                                                                #     print(next(portReader))
-                                                                #     speak(value // 1024, serial)
-                                                                #     print(next(portReader))
-                                                                #     speak((value % 1024) // 8, serial)
-                                                                #     print(next(portReader))
-        if max([hipAngle // 1024, shoulderAngle // 1024, elbowAngle // 1024]) > 127:
+                                                               
+        if max([hipAngle // 1024, shoulderAngle // 1024, elbowAngle // 1024]) > 127:    # Valor muy grande como para ser enviado
             raise OutOfRangeReference("Angle given exceeds range possible to be sent")
         try:
             self.talk(CHANGE_ELBOW_REFERENCE)
-            self.talk(hipAngle // 1024)
-            self.talk((hipAngle % 1024) // 8)
+            self.talk(hipAngle // 1024)                 # Primer 50%
+            self.talk((hipAngle % 1024) // 8)           # Segundo 50%
             
             self.talk(CHANGE_SHOULDER_REFERENCE)
             self.talk(shoulderAngle // 1024)
@@ -123,22 +122,22 @@ class ARMR1:
             self.talk((elbowAngle % 1024) // 8)
 
             if execute:
-                self.talk(UPDATE_ALL_REFERENCES)
+                self.talk(UPDATE_ALL_REFERENCES)        # Hace que el robot se mueva
         except InvalidOrderException:
             print("Error: POSITION OUT OF REACH")
         
-    def executeNextReference(self):
+    def executeNextReference(self):                     # Robot actualiza todas sus referencias y se mueve
         self.talk(UPDATE_ALL_REFERENCES)
 
     @staticmethod
-    def parsePosition(pos):
+    def parsePosition(pos):                             # Pasa de posicion entregada por el esclavo (binario) a un angulo
         aux = 1.536 * int(pos[0])
         if aux > 300:
             return aux - 360
         return aux
 
     @staticmethod
-    def __serialLineReader(port):
+    def __serialLineReader(port):                       # Generador de lecturas de lineas (usado en DEBUG)
         while True:
             aux = bytearray()
             while True:
@@ -152,17 +151,17 @@ class ARMR1:
             yield aux
 
     @staticmethod
-    def messageSplitter(x):
+    def messageSplitter(x):                             # Corta valores para poder enviarlos en 2 mensajes de 7 bits (literales)
         if x // 1024 > 127:
             raise OutOfRangeReference("Number too high to be sent to robot")
         return (x // 1024, (x % 1024) // 8)
 
     @staticmethod
-    def __serialCharReader(port):
+    def __serialCharReader(port):                       # Generador encargado de lecturas de caracteres en puesto serial
         while True:
             yield port.read()
     
-    def clearSerial(self):
+    def clearSerial(self):                              # Vacía puerto serial
         a = b"a"
         while a != b"":
             a = next(self.reader)
@@ -195,7 +194,7 @@ class ARMR1:
 
         return [q1, q2 + 90, q3]
 
-if __name__ == "__main__":
+if __name__ == "__main__":                          # DEMO de funcionalidades básicas
     a = ARMR1(serialPort='/dev/ttyUSB0')
     opt = "asdf"
     while opt != "0":
