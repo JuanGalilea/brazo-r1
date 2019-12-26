@@ -68,3 +68,31 @@ Binario |  Instrucción
 0b1101  |  N/A
 0b1110  |  N/A
 0b1111  |  N/A
+
+Instrucciones globales y sus códigos en binario:
+
+Binario |  Instrucción
+-----   |  -------------
+0b000000  |  NoData
+0b000001  |  Instrucción Vacía
+0b000010  |  Ir a Home y terminar la comunicación
+0b000011  |  Ir a Home
+0b000100  |  Actualizar Referencias de todos los motores
+0b000101  |  N/A
+...       |  N/A
+
+### Esclavo a Maestro
+Las respuestas del esclavo son un set muy reducido de mensajes y dependen del mensaje recibido por el esclavo. Esto significa que el esclavo se comunica con el maestro solo en respuesta a una instrucción enviada por el maestro.
+
+Las respuestas son:
+
+Caractér  |  Instrucción
+-----     |  -------------
+S         |  Respuesta a Instrucción Vacía
+B         |  Respuesta a GoodBye
+A         |  Acknowledge (Instrucción recibida con éxito)
+T         |  Funcionalidad no implementada
+E         |  Orden No Reconocida
+5         |  Recibido el 50% del dato a cargar
+U         |  Literal Recibido sin contexto de carga
+Literal   |  Valor de la informacion pedida
