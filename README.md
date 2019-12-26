@@ -45,3 +45,26 @@ Luego los siguientes 4 bits corresponden a la orden que se le quiere entregar a 
 * Últimos 4 bits son 0000 ya que esta es la orden de entregar posición.
 
 Osea el mensaje a enviar es 0b1101000 = 208
+
+Los mensajes en binario para cada instrucción están hardcoded en el archivo `SerialController.ino`.
+
+Instrucciones para cada motor y sus códigos en binario:
+
+Binario |  Instrucción
+-----   |  -------------
+0b0000  |  Entregar Posición
+0b0001  |  Actualizar Referencia
+0b0010  |  Cargar Nueva Referencia
+0b0011  |  Cargar nueva Referencia (50%)
+0b0100  |  Controlar Mediante Posición
+0b0101  |  Controlar Mediante Velocidad
+0b0110  |  Cargar Nueva Referencia de Velocidad
+0b0111  |  Cargar Nueva Referencia de Velocidad (50%)
+0b1000  |  Entregar Velocidad Actual
+0b1001  |  Actualizar Referencia de Velocidad
+0b1010  |  Entregar Consumo de Corriente Actual
+0b1011  |  N/A
+0b1100  |  N/A
+0b1101  |  N/A
+0b1110  |  N/A
+0b1111  |  N/A
