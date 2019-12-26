@@ -77,10 +77,10 @@
 #define elbowEOT    41
 #define elbowEOTShift 9
 
-long fullRotation = 175784;
-float integrativeLoss = 0.8;
-bool isZeroing    = false;
-int  histPointer  = 0;
+long fullRotation = 175784;       // Rotación completa del motor (Rotación del extremo efector = 240000)
+float integrativeLoss = 0.8;      // Perdida de acumulación del factor integral en cada paso
+bool isZeroing    = false;        
+int  histPointer  = 0;            // "Puntero" de la posicion actual en la lista circular de posiciones
 long startTime    = 0;
 long lastTime     = 0;
 
@@ -89,26 +89,26 @@ char inByte;
 char LastCommand;
 
 bool exec = true;
-long timeHist[5];
+long timeHist[5];                 // Lista circular de ultimos tiempos de ejecución
 
-volatile bool hipZeroed = false;
-volatile long hipPos    = 60000;
-long  hipPosHist[5]        ;
-long  hipHome           = 0;
-long  hipNextTarget     = 60000;
-long  hipRef            = 60000;
-bool  hipVelControl     = 0;
-long  hipVelNextTarget  = 0;
-long  hipVelRef         = 0;
-int   hipMotorT         = 0;
-float hipP              = 8;
-float hipI              = 1.5;
-float hipD              = 40;
-float hipVP             = 0;
-float hipVI             = 0;
-float hipVD             = 0;
-long  hipAccError       = 0;
-int   hipIConstrain     = 5000;
+volatile bool hipZeroed = false;  
+volatile long hipPos    = 60000;  // Posición actual de la cadera
+long  hipPosHist[5]        ;      // Lista circular de las ultimas posiciones de la cadera
+long  hipHome           = 0;      
+long  hipNextTarget     = 60000;  // Proxima referencia a cargar
+long  hipRef            = 60000;  // Referencia actual de la cadera
+bool  hipVelControl     = 0;      // Valor a entregar al motor cuando se controla por velocidad
+long  hipVelNextTarget  = 0;      // Proxima referencia a cargar en control por velocidad
+long  hipVelRef         = 0;      // Referencia actual en control por velocidad
+int   hipMotorT         = 0;      // Valor a entregar al motor cuando se controla por posicion
+float hipP              = 4;      // Kp de la cadera
+float hipI              = 1.5;    // Ki de la cadera
+float hipD              = 40;     // Kd de la cadera
+float hipVP             = 0;      // Kp de la cadera en control por velocidad
+float hipVI             = 0;      // Ki de la cadera en control por velocidad
+float hipVD             = 0;      // Kd de la cadera en control por velocidad
+long  hipAccError       = 0;      // Error acumulado de la cadera (control integrativo)
+int   hipIConstrain     = 5000;   // Limite de acumulación de la cadera
 
 volatile bool shoulderZeroed  = false;
 volatile long shoulderPos     = 0;
@@ -127,7 +127,7 @@ float shoulderVP              = 0;
 float shoulderVI              = 0;
 float shoulderVD              = 0;
 long  shoulderKg              = 18; // MAS ALTO = MAS DÉBIL (16 antes)
-float shoulderFeedForward     = 1;
+float shoulderFeedForward     = 0;
 long  shoulderAccError        = 0;
 int   shoulderIConstrain      = 5000;
 
@@ -153,6 +153,7 @@ int   elbowIConstrain     = 5000;
 
 void setup() 
 {
+  // Inicializamos los pines a utilizar en input y les preparamos las interrupciones
   pinMode(hipEncA, INPUT);
   attachInterrupt(digitalPinToInterrupt(hipEncA), doHipEncA, CHANGE);
   pinMode(hipEncB, INPUT);
@@ -174,14 +175,16 @@ void setup()
   pinMode(elbowEOT, INPUT);
   attachInterrupt(digitalPinToInterrupt(elbowEOT), doElbowEOT, RISING);
 
-  Serial.begin(115200);
-  Serial2.begin(9600);
-  Serial3.begin(9600);
+  // Inicializamos comunicación serial
+  Serial.begin(115200); // Computador (Maestro)
+  Serial2.begin(9600);  // PuenteH 1 (Cadera y Codo)
+  Serial3.begin(9600);  // PuenteH 2 (Hombro)
 
   sendRefToMotor(0,0);  // turn off hip
   sendRefToMotor(1,0);  // turn off shoulder
   sendRefToMotor(2,0);  // turn off elbow
 
+  // Medimos tiempos iniciales
   startTime = millis();
   lastTime = millis();
 }
@@ -189,11 +192,13 @@ void setup()
 
 
 void loop() {
+  // Limitamos a funcionar con una separacion mínima de 20 ms entre ciclos
   if (millis() - lastTime > 20) {
     lastTime = millis();
-    handleComms();
-    updatePosHist();
+    handleComms();                // Revisamos la comunicación con el maestro y vemos que se necesita hacer
+    updatePosHist();              // Actualizamos valores en listas circulares y de tiempo (usado en control derivativo o por V)
 
+    // Controlamos las distintas articulaciones según el tipo de control que tengan activo (Posición o velocidad)
     if (elbowVelControl) {
       controlElbowV();
     }
@@ -215,18 +220,7 @@ void loop() {
       controlHip();
     }
 
-    Serial.print(elbowPos,DEC);
-    Serial.print(" : ");
-    Serial.print(elbowMotorT,DEC);
-    Serial.print(" -> ");
-    Serial.print(shoulderPos,DEC);
-    Serial.print(" : ");
-    Serial.print(shoulderMotorT,DEC);
-    Serial.print(" -> ");
-    Serial.print(hipPos,DEC);
-    Serial.print(" : ");
-    Serial.println(hipMotorT,DEC);
-
+    // Entregamos valores a los motores 
     sendRefToMotor(2,elbowMotorT);
     sendRefToMotor(1,shoulderMotorT);
     sendRefToMotor(0,hipMotorT);
@@ -238,63 +232,63 @@ void loop() {
 }
 
 void handleComms () {
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0) {                       // Si hay algo en el puerto lo leemos si no no hacemos nada
     inByte = Serial.read();
-    if ((inByte & TagMask) > 0) {                     // Lectura de comandos
+    if ((inByte & TagMask) > 0) {                     // Lectura de comandos (primer bit es 1 en comandos)
       switch(inByte) {
-        case Nothing:
-          Serial.write("S");
+        case Nothing:                                 // Utilizado por el maestro para confirmar la conexión
+          Serial.write("S");                          // "S" de Start
           break;
-        case GoodBye:
+        case GoodBye:                                 // Termina la comunicación y manda a "Home" al brazo
           setHipReference (hipHome);
           setShoulderReference (shoulderHome);
           setElbowReference (elbowHome);
-          Serial.write('B');
+          Serial.write('B');                          // "B" de Bye
           Serial.end();
           break;
-        case GoHome:
+        case GoHome:                                  // Solo envía a home al brazo
           setHipReference (hipHome);
           setShoulderReference (shoulderHome);
           setElbowReference (elbowHome);
-          Serial.write('A');
+          Serial.write('A');                          // "A" de Acknowledge
           break;
-        case UpdateAll:
+        case UpdateAll:                               // Actualiza todas las referencias por las cargadas en los nextTarget
           setHipReference (hipNextTarget);
           setShoulderReference (shoulderNextTarget);
           setElbowReference (elbowNextTarget);
-          Serial.write('A');
+          Serial.write('A');                          // "A" de Acknowledge
           break;
                   // Ordenes de la Cadera
-        case HipGivePos:
-          Serial.write((char)((hipPos & ShortenLong)>>10));
+        case HipGivePos:                              // Entregar posicion actual de la cadera
+          Serial.write((char)((hipPos & ShortenLong)>>10));   // 8 bits mas significativos de la posicion
           break;
-        case HipUpdate:
+        case HipUpdate:                               // Actualizar referencia
           hipRef = hipNextTarget;
           Serial.write('A');
           break;
-        case HipTakeRef:
+        case HipTakeRef:                              // Cargar nueva referencia en NextTarget
           Serial.write('A');
           break;
-        case HipPosControl:
+        case HipPosControl:                           // Cambiar a control por Posición
           hipVelControl = false;
           Serial.write('A');
           break;
-        case HipVelControl:
+        case HipVelControl:                           // Cambiar a control por velocidad
           hipVelControl = true;
           Serial.write('A');
           break;
-        case HipTakeVRef:
+        case HipTakeVRef:                             // Cargar nueva referencia de velocidad en NextVelTarget
           Serial.write('A');
           break;
-        case HipGiveVel:
-          Serial.write('T');
+        case HipGiveVel:                              // Entregar velocidad actual
+          Serial.write('T');                          // No implementado
           break;
-        case HipUpdateV:
+        case HipUpdateV:                              // Actualizar referencia de velocidad
           hipVelRef = hipNextTarget;
           Serial.write('A');
           break;
-        case HipGiveCurrent:
-          Serial.write('T');
+        case HipGiveCurrent:                          // Entrega de consumo actual de corriente
+          Serial.write('T');                          // No implementado
           break;
                   // Ordenes del Hombro
         case ShoulderGivePos:
@@ -360,21 +354,21 @@ void handleComms () {
         case ElbowGiveCurrent:
           Serial.write('T');
           break;
-        default:
-          Serial.write('E');
+        default:                                  
+          Serial.write('E');                        // "E" de Error (comando no reconocido)
           break;
       }
       LastCommand = inByte;
     }
     else {                                    // Lectura de Literales
       switch (LastCommand) {
-      case HipTakeRef:
-        Serial.write('5');
+      case HipTakeRef:                        // Lectura del primer 50% del literal de la nueva referencia de la cadera
+        Serial.write('5');                    // "5" de recibido el 50%
         hipNextTarget = emptyLong ^ ((inByte & payloadMask) << 10);
         LastCommand = HipTakeRef50;
         break;
-      case HipTakeRef50:
-        Serial.write('A');
+      case HipTakeRef50:                      // Lectura de la segunda mitad de la nueva referencia
+        Serial.write('A');                    // "A" de Acknowledge (recepción completa del literal)
         hipNextTarget = hipNextTarget ^ ((inByte & payloadMask) << 3);
         LastCommand = Nothing;
         break;
@@ -440,7 +434,7 @@ void handleComms () {
   
 }
 
-void doHipEncA() {
+void doHipEncA() { // Interrupciones de los encoders y chequeo de finales de carrera
   if (readFromReg(hipEncAShift) == readFromReg(hipEncBShift)) {
     hipPos++;
   } 
@@ -502,7 +496,7 @@ void doElbowEncB() {
   }
 }
 
-void doHipEOT() {
+void doHipEOT() { // Interrupcion de los finales de carrera
   hipZeroed = true;
   if (hipVelControl) {
     hipRef = 0;
@@ -529,19 +523,19 @@ void doElbowEOT() {
   elbowPos = 0;
 }
 
-void updatePosHist () {
+void updatePosHist () {                       // Actualiza valores en listas circulares de posicion y tiempo
   hipPosHist[histPointer] = hipPos;
   shoulderPosHist[histPointer] = shoulderPos;
   elbowPosHist[histPointer] = elbowPos;
   timeHist[histPointer] = lastTime;
-  if (++histPointer >= 5) {histPointer = 0;}
+  if (++histPointer >= 5) {histPointer = 0;}  // Mueve el "Puntero" de la ultima posicion cargada
 }
 
 bool readFromReg(int shift) {
-  return (inputREG -> PIO_PDSR >> shift) & lastPinMask;
+  return (inputREG -> PIO_PDSR >> shift) & lastPinMask; // Carga por registro de pines digitales (Ignorar Warning que pueda generar esta linea)
 }
 
-int to05 (int entrada) {
+int to05 (int entrada) {                      // Corrección de indices en lista circular
   if (0 <= entrada and entrada < 5) {
     return entrada;
   }
@@ -554,7 +548,7 @@ int to05 (int entrada) {
   
 }
 
-double hipVel () {
+double hipVel () {    // Medicion del promedio de velocidades de los ultimos 4 instantes de tiempo
   double speed1 = (hipPosHist[to05(histPointer - 1)] - hipPosHist[to05(histPointer - 2)]) 
                   / (timeHist[to05(histPointer - 1)] - timeHist[to05(histPointer - 2)]);
   double speed2 = (hipPosHist[to05(histPointer - 2)] - hipPosHist[to05(histPointer - 3)]) 
@@ -590,7 +584,7 @@ double elbowVel () {
   return (speed1 + speed2 + speed3 + speed4) / 4;
 }
 
-void setHipReference (double ref) {
+void setHipReference (double ref) {       // Actualiza Referencia (existe para legibilidad)
   hipRef = ref;
 }
 
@@ -602,31 +596,35 @@ void setElbowReference (double ref) {
   elbowRef = ref;
 }
 
-void controlHip () {
-  hipAccError = constrain(integrativeLoss * hipAccError + hipRef - hipPos, -hipIConstrain, hipIConstrain);
-  double p = (hipRef - hipPos) * hipP;
-  double d = hipVel() * (-hipD);
-  long   i = hipAccError * hipI;
+void controlHip () {                      // Ejecuta control por posicion sobre la cadera
+  hipAccError = constrain(integrativeLoss * hipAccError + hipRef - hipPos, -hipIConstrain, hipIConstrain); // Actualizamos error acumulado
+  double p = (hipRef - hipPos) * hipP;    // Calculamos valor de P
+  double d = hipVel() * (-hipD);          // Calculamos valor de D
+  long   i = hipAccError * hipI;          // Calculamos valor de I
   hipMotorT = map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  // Limitado el output del motor entre -1000 y 1000 (1000 es caleta)
 }
 
-void controlHipV () {
+void controlHipV () {                     // Control P sobre velocidad
   double p = (hipVelRef - hipVel()) * hipVP;
   hipMotorT = map(constrain(p, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
-void controlShoulder () {
+void controlShoulder () {                 // Control de posicion sobre el Hombro
   shoulderAccError = constrain(integrativeLoss * shoulderAccError + shoulderRef - shoulderPos, -shoulderIConstrain, shoulderIConstrain);
-  double p = (shoulderRef - shoulderPos) * shoulderP;
+  double p = (shoulderRef - shoulderPos) * shoulderP;   // Todo esto ya se ha visto en la cadera
   double d = shoulderVel() * (-shoulderD);
   long   i = shoulderAccError * shoulderI;
 
-  double aux = map(shoulderPos, 5000, 135000,0,180);
+  double aux = map(shoulderPos, 5000, 135000,0,180);    // termino auxiliar para el calculo del termino G
   if (aux > 180)  {aux = 360 - aux;}
   if (aux < 0)    {aux = abs(aux);}
-  double g = ((aux - 90)*abs(aux - 90)) / -shoulderKg;
+  double g = ((aux - 90)*abs(aux - 90)) / -shoulderKg;  // Compensación de la gravedad según Posición (Cuadrática)
 
-  shoulderMotorT = (- elbowMotorT * shoulderFeedForward) + g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  shoulderMotorT = elbowMotorT * shoulderFeedForward + g + map(constrain(p + i + d, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
+  // FeedForward del torque que hace el codo (el hombro tambien lo tiene que hacer para mantenerse "quieto")
+  // Termino de la gravedad se agrega al control normal
+  // Ninguno de estos está en la parte saturada ya que no tratan con fuerzas "externas" (cargas o interacciones con el ambiente)
 }
 
 void controlShoulderV () {
@@ -655,19 +653,19 @@ void controlElbowV () {
   elbowMotorT = map(constrain(p, -fullRotation, fullRotation), -fullRotation, fullRotation, -1000, 1000);
 }
 
-void sendRefToMotor(int motor, int ref) {
+void sendRefToMotor(int motor, int ref) {   // Envia la referencia indicada al motor indicado
   switch (motor) {
   case 0: // move Hip according to ref
     Serial2.print("M1: ");
-    Serial2.println(-ref ,DEC);
+    Serial2.println(-ref ,DEC); // Gira para el otro lado
     break;
   case 1: // move Shoulder according to ref
     Serial3.print("M1: ");
-    Serial3.println(ref ,DEC);
+    Serial3.println(ref ,DEC);  
     break;
   case 2: // move Elbow according to ref
     Serial2.print("M2: ");
-    Serial2.println(-ref ,DEC);
+    Serial2.println(-ref ,DEC); // Tambien gira para el otro lado
     break;
   default:
     break;
