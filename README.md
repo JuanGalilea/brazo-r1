@@ -9,8 +9,11 @@ Este código además maneja la comunicación de bajo nivel con el computador en 
 ## Librería
 Carpeta con software y librería básica de uso del brazo, esta librería es la **_ARMR1_**, para utilizarla solo es necesario tener el código: 
 
-``` Import ARMR1 ```
-``` foo = ARMR1.ARMR1() ```
+~~~ python
+Import ARMR1
+
+foo = ARMR1.ARMR1()
+~~~
 
 teniendo la carpeta ARMR1 en el mismo directorio que el archivo a ejecutar.
 
