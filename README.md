@@ -96,3 +96,5 @@ E         |  Orden No Reconocida
 5         |  Recibido el 50% del dato a cargar
 U         |  Literal Recibido sin contexto de carga
 Literal   |  Valor de la informacion pedida
+
+*Para más información sobre la comunicación y los detalles de su funcionamiento porfavor leer* `SerialController.ino`
