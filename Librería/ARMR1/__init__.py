@@ -8,7 +8,7 @@ import math as m
 class InvalidOrderException (Exception):pass    # La orden que se quiere enviar no existe
 class OutOfRangeReference   (Exception):pass    # La referencia entregada es un valor fuera de rango (Movimiento seguro va de 0 a 120K)
 
-fullRotation = 175784
+fullRotation = 240000
 
 # Valores hardcoded de las distintas instrucciones (Hay algunas mas que acepta el controlador pero no estan incorporadas aca)
 NO_COMMAND                      = 129
