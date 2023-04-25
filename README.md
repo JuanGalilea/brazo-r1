@@ -1,5 +1,6 @@
 # brazo-r1
 Repositorio de control del brazo del robot R1.
+![image](https://user-images.githubusercontent.com/17620917/234140620-aa547304-6852-48d8-a68e-369dd1bfec5f.png)
 
 ## Controlador
 Carpeta con el firmware del brazo, en especifico con el codigo arduino a utilizar en el arduino DUE. Los pines utilizados están definidos en la parte inicial del código ino. Las conexiones consideran 3 comunicaciones seriales, 6 pins digitales de lectura de encoders y 3 pines de lectura de finales de carrera.
